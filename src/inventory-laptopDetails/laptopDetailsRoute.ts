@@ -1,0 +1,20 @@
+import express from "express";
+import {
+  addLaptopDetails,
+  deleteLaptopDetails,
+  getAllLaptopDetails,
+  getLaptopDetailsBySerialNumber,
+  retireLaptop,
+  updateLaptopDetails,
+} from "./laptopDetailsController.ts";
+
+const laptopDetailsRouter = express.Router();
+
+laptopDetailsRouter.post("/", addLaptopDetails);
+laptopDetailsRouter.get("/", getAllLaptopDetails);
+laptopDetailsRouter.get("/:serialNumber", getLaptopDetailsBySerialNumber);
+laptopDetailsRouter.put("/:serialNumber", updateLaptopDetails);
+laptopDetailsRouter.delete("/:serialNumber", deleteLaptopDetails);
+laptopDetailsRouter.put("/:serialNumber", retireLaptop);
+
+export default laptopDetailsRouter;
