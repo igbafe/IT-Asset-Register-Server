@@ -90,7 +90,7 @@ export const reassignLaptop = async (req: Request, res: Response) => {
 
 export const updateLaptop = async (req: Request, res: Response) => {
   try {
-    const { _id } = req.params; 
+    const { _id } = req.params;
     const updates = laptopAssignmentSchema.partial().parse(req.body);
 
     const updatedLaptop = await laptopAssignmentModel.findByIdAndUpdate(
@@ -117,7 +117,6 @@ export const updateLaptop = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 export const getLaptopBySerailNumber = async (req: Request, res: Response) => {
   try {
@@ -153,5 +152,27 @@ export const getAllLaptops = async (req: Request, res: Response) => {
       message: "Error getting laptop details",
       error: error.message,
     });
+  }
+};
+
+export const retireAssignment = async (req: Request, res: Response) => {
+  try {
+    const { systemName } = req.params;
+    const retireAssignment = await laptopAssignmentModel.findOneAndUpdate(
+      { systemName },
+      { status: "Retired" },
+      { new: true }
+    );
+    if (!retireAssignment) {
+      return res.status(404).json({ message: "Laptop not found" });
+    }
+    res.status(200).json({
+      message: "Laptop Assignment retired successfully",
+      laptop: retireAssignment,
+    });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Error retiring Assignment", error: error.message });
   }
 };

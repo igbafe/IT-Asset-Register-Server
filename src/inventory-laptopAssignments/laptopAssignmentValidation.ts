@@ -18,7 +18,7 @@ export const laptopAssignmentSchema = z.object({
       z.date().optional()
     )
     .optional(),
-  status: z.enum(["Active", "Returned", "Transferred"]).optional(), // <-- now optional
+  status: z.enum(["Active", "Returned", "Retired"]).optional(), // <-- now optional
 });
 
 export type LaptopAssignmentInput = z.infer<typeof laptopAssignmentSchema>;

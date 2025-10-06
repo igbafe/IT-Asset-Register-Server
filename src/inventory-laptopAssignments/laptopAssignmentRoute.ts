@@ -4,6 +4,7 @@ import {
   getAllLaptops,
   getLaptopBySerailNumber,
   reassignLaptop,
+  retireAssignment,
   updateLaptop,
 } from "../inventory-laptopAssignments/laptopAssignmentController.ts";
 
@@ -14,5 +15,6 @@ assignmentRouter.post("/:serialNumber", reassignLaptop);
 assignmentRouter.put("/:_id", updateLaptop);
 assignmentRouter.get("/:serialNumber", getLaptopBySerailNumber);
 assignmentRouter.get("/", getAllLaptops);
+assignmentRouter.put("/retire/:systemName",retireAssignment);
 
 export default assignmentRouter;

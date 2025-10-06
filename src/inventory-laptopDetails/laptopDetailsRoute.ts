@@ -15,6 +15,6 @@ laptopDetailsRouter.get("/", getAllLaptopDetails);
 laptopDetailsRouter.get("/:serialNumber", getLaptopDetailsBySerialNumber);
 laptopDetailsRouter.put("/:serialNumber", updateLaptopDetails);
 laptopDetailsRouter.delete("/:serialNumber", deleteLaptopDetails);
-laptopDetailsRouter.put("/:serialNumber", retireLaptop);
+laptopDetailsRouter.put("/retire/:serialNumber", retireLaptop);
 
 export default laptopDetailsRouter;
