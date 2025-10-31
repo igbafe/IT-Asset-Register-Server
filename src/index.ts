@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // your local frontend URL
+      "https://it-asset-register-client.onrender.com", // your local frontend URL
     ],
   })
 );
