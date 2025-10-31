@@ -8,7 +8,7 @@ export interface ILaptopAssignment extends Document {
   department: string;
   assignedDate: Date;
   returnedDate?: Date;
-  status: "Active" | "Returned";
+  status: "Active" | "Returned" | "Retired";
 }
 
 const LaptopAssignmentSchema: Schema = new Schema(
@@ -22,7 +22,7 @@ const LaptopAssignmentSchema: Schema = new Schema(
     returnedDate: { type: Date },
     status: {
       type: String,
-      enum: ["Active", "Returned", "Transferred"],
+      enum: ["Active", "Returned", "Retired"],
       default: "Active",
     },
   },

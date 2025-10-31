@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import laptopDetailsModel from "./laptopDetailsModel.ts";
 import { laptopDetailsSchema } from "./laptopDetailsValidation.ts";
+import { ZodError } from "zod";
 
 export const addLaptopDetails = async (req: Request, res: Response) => {
   try {
@@ -22,13 +23,14 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
       message: "Laptop details added successfully",
       laptop: newLaptopDetails,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({ errors: error.errors });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
-    res
-      .status(500)
-      .json({ message: "Error adding laptop details", error: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error Adding Laptop" });
   }
 };
 
@@ -48,11 +50,14 @@ export const getLaptopDetailsBySerialNumber = async (
       message: "Laptop retrieved successfully",
       laptop,
     });
-  } catch (error: any) {
-    res.status(500).json({
-      message: "Error getting laptop details by serial number",
-      error: error.message,
-    });
+  }catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error getting details by serial number" });
   }
 };
 
@@ -74,13 +79,14 @@ export const updateLaptopDetails = async (req: Request, res: Response) => {
       message: "Laptop updated successfully",
       laptop: updatedLaptop,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({ errors: error.errors });
+  }catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
-    res
-      .status(500)
-      .json({ message: "Error updating laptop details", error: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error updating laptop" });
   }
 };
 
@@ -95,10 +101,14 @@ export const getAllLaptopDetails = async (req: Request, res: Response) => {
       count: laptops.length,
       data: laptops,
     });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: "Error getting laptop details", error: error.message });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error getting all laptops" });
   }
 };
 
@@ -117,10 +127,14 @@ export const retireLaptop = async (req: Request, res: Response) => {
       message: "Laptop retired successfully",
       laptop: retiredLaptop,
     });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: "Error retiring laptop", error: error.message });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error retiring Laptop" });
   }
 };
 
@@ -137,9 +151,13 @@ export const deleteLaptopDetails = async (req: Request, res: Response) => {
       message: "Laptop deleted successfully",
       laptop: deletedLaptop,
     });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: "Error deleting laptop details", error: error.message });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error deleting Laptop" });
   }
 };
