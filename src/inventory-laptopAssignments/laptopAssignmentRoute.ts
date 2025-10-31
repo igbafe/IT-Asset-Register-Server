@@ -11,7 +11,7 @@ import {
 const assignmentRouter = express.Router();
 
 assignmentRouter.post("/", assignLaptop);
-assignmentRouter.post("/:serialNumber", reassignLaptop);
+assignmentRouter.post("/reassign/:serialNumber", reassignLaptop);
 assignmentRouter.put("/:_id", updateLaptop);
 assignmentRouter.get("/:serialNumber", getLaptopBySerailNumber);
 assignmentRouter.get("/", getAllLaptops);

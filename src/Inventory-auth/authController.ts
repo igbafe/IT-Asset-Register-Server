@@ -5,11 +5,7 @@ import crypto from "crypto";
 import { z, ZodError } from "zod";
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import {
-  loginSchema,
-  otpSchema,
-  userSchemaZod,
-} from "./authValidation.ts";
+import { loginSchema, otpSchema, userSchemaZod } from "./authValidation.ts";
 import mongoose from "mongoose";
 
 const transporter = nodemailer.createTransport({
@@ -195,9 +191,10 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid password" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid password",
+      });
     }
 
     if (!user.isVerified) {
@@ -209,7 +206,17 @@ export const loginUser = async (req: Request, res: Response) => {
     // When creating the token:
     const token = createToken((user._id as mongoose.Types.ObjectId).toString());
 
-    res.status(200).json({ success: true, token, message: "Login successful" });
+    res.status(200).json({
+      success: true,
+      token,
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return res
