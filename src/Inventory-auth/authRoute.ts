@@ -6,7 +6,7 @@ import {
   registerUser,
   resendOTP,
   verifyOTP,
-} from "../Inventory-auth/authController.ts";
+} from "../Inventory-auth/authController.js";
 
 const userRouter = express.Router();
 

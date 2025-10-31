@@ -6,7 +6,7 @@ import {
   reassignLaptop,
   retireAssignment,
   updateLaptop,
-} from "../inventory-laptopAssignments/laptopAssignmentController.ts";
+} from "../inventory-laptopAssignments/laptopAssignmentController.js";
 
 const assignmentRouter = express.Router();
 

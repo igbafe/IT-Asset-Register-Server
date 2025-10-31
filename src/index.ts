@@ -1,10 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
-import { connectDB } from "./config/db.ts";
+import { connectDB } from "./config/db.js";
 import cors from "cors";
-import userRouter from "./Inventory-auth/authRoute.ts";
-import assignmentRouter from "./inventory-laptopAssignments/laptopAssignmentRoute.ts";
-import laptopDetailsRouter from "./inventory-laptopDetails/laptopDetailsRoute.ts";
+import userRouter from "./Inventory-auth/authRoute.js";
+import assignmentRouter from "./inventory-laptopAssignments/laptopAssignmentRoute.js";
+import laptopDetailsRouter from "./inventory-laptopDetails/laptopDetailsRoute.js";
 
 dotenv.config({ path: "./.env" });
 

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { laptopAssignmentSchema } from "./laptopAssignmentValidation.ts";
-import laptopAssignmentModel from "./laptopAssignmentModel.ts";
+import { laptopAssignmentSchema } from "./laptopAssignmentValidation.js";
+import laptopAssignmentModel from "./laptopAssignmentModel.js";
 
 export const assignLaptop = async (req: Request, res: Response) => {
   try {

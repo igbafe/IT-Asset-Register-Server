@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import laptopDetailsModel from "./laptopDetailsModel.ts";
-import { laptopDetailsSchema } from "./laptopDetailsValidation.ts";
+import laptopDetailsModel from "./laptopDetailsModel.js";
+import { laptopDetailsSchema } from "./laptopDetailsValidation.js";
 import { ZodError } from "zod";
 
 export const addLaptopDetails = async (req: Request, res: Response) => {

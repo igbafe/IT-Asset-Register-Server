@@ -6,7 +6,7 @@ import {
   getLaptopDetailsBySerialNumber,
   retireLaptop,
   updateLaptopDetails,
-} from "./laptopDetailsController.ts";
+} from "./laptopDetailsController.js";
 
 const laptopDetailsRouter = express.Router();
 
