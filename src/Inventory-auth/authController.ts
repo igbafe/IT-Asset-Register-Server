@@ -1,11 +1,11 @@
 import nodemailer from "nodemailer";
-import { User } from "./authModel.ts";
+import { User } from "./authModel.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { z, ZodError } from "zod";
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { loginSchema, otpSchema, userSchemaZod } from "./authValidation.ts";
+import { loginSchema, otpSchema, userSchemaZod } from "./authValidation.js";
 import mongoose from "mongoose";
 
 const transporter = nodemailer.createTransport({
