@@ -145,7 +145,10 @@ export const getLaptopBySerailNumber = async (req: Request, res: Response) => {
 
 export const getAllLaptops = async (req: Request, res: Response) => {
   try {
-    const laptops = await laptopAssignmentModel.find();
+    const laptops = await laptopAssignmentModel
+      .find()
+      .sort({ assignedDate: -1 }) 
+      .lean();
     res.status(200).json({
       message: "Laptops retrieved successfully",
       laptops,
