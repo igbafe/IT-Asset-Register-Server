@@ -121,7 +121,10 @@ export const updateLaptop = async (req: Request, res: Response) => {
 export const getLaptopBySerailNumber = async (req: Request, res: Response) => {
   try {
     const { serialNumber } = req.params;
-    const laptop = await laptopAssignmentModel.find({ serialNumber });
+    const laptop = await laptopAssignmentModel
+      .find({ serialNumber })
+      .sort({ assignedDate: -1 }) // 👈 sorts newest first
+      .lean();
     if (!laptop) {
       return res.status(404).json({ message: "Laptop not found" });
     }
