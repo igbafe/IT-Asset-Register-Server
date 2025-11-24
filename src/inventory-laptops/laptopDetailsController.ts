@@ -1,13 +1,14 @@
 import type { Request, Response } from "express";
-import laptopDetailsModel from "./laptopDetailsModel.js";
-import { laptopDetailsSchema } from "./laptopDetailsValidation.js";
-import { ZodError } from "zod";
+import laptopDetailsModel from "./laptopsModel.js";
+import { laptopDetailsSchema } from "./laptopsValidation.js";
+import { success, ZodError } from "zod";
+import { LaptopStatus } from "../types/types.js";
 
+// CRUD Operations for Laptop Details
 export const addLaptopDetails = async (req: Request, res: Response) => {
   try {
     const laptopDetails = laptopDetailsSchema.parse(req.body);
 
-    // check if laptop with the same serial number already exists
     const existingLaptop = await laptopDetailsModel.findOne({
       serialNumber: laptopDetails.serialNumber,
     });
@@ -18,6 +19,7 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
       });
     }
     const newLaptopDetails = new laptopDetailsModel(laptopDetails);
+    newLaptopDetails.status = LaptopStatus.AVAILABLE;
     await newLaptopDetails.save();
     res.status(201).json({
       message: "Laptop details added successfully",
@@ -50,14 +52,17 @@ export const getLaptopDetailsBySerialNumber = async (
       message: "Laptop retrieved successfully",
       laptop,
     });
-  }catch (error) {
+  } catch (error) {
     if (error instanceof ZodError) {
       return res
         .status(400)
         .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
     console.error(error);
-    res.status(500).json({ success: false, message: "Error getting details by serial number" });
+    res.status(500).json({
+      success: false,
+      message: "Error getting details by serial number",
+    });
   }
 };
 
@@ -79,7 +84,7 @@ export const updateLaptopDetails = async (req: Request, res: Response) => {
       message: "Laptop updated successfully",
       laptop: updatedLaptop,
     });
-  }catch (error) {
+  } catch (error) {
     if (error instanceof ZodError) {
       return res
         .status(400)
@@ -108,22 +113,60 @@ export const getAllLaptopDetails = async (req: Request, res: Response) => {
         .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
     console.error(error);
-    res.status(500).json({ success: false, message: "Error getting all laptops" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error getting all laptops" });
   }
 };
 
 export const retireLaptop = async (req: Request, res: Response) => {
   try {
     const { serialNumber } = req.params;
-    const retiredLaptop = await laptopDetailsModel.findOneAndUpdate(
-      { serialNumber },
-      { status: "Retired" },
-      { new: true }
-    );
+    const { retirementNote } = req.body;
+
+    const retiredLaptop = await laptopDetailsModel.findOne({ serialNumber });
+
     if (!retiredLaptop) {
       return res.status(404).json({ message: "Laptop not found" });
     }
+
+    if (retiredLaptop.status === LaptopStatus.RETIRED) {
+      return res.status(400).json({
+        success: false,
+        message: "Laptop is already retired",
+      });
+    }
+
+    // Move currentUser to previousUser if assigned
+    if (retiredLaptop.currentUser) {
+      const mapCurrentToPrevious = (
+        user: typeof retiredLaptop.currentUser
+      ) => ({
+        fullName: user.fullName,
+        email: user.email,
+        department: user.department,
+        assignedDate: user.assignedDate,
+        returnedDate: new Date(),
+      });
+
+      const previousUsers = retiredLaptop.previousUser || [];
+      previousUsers.push(mapCurrentToPrevious(retiredLaptop.currentUser));
+
+      retiredLaptop.previousUser = previousUsers;
+      retiredLaptop.currentUser = null;
+    }
+
+    retiredLaptop.status = LaptopStatus.RETIRED;
+    retiredLaptop.retirementDate = new Date();
+
+    if (retirementNote) {
+      retiredLaptop.retirementNote = retirementNote;
+    }
+
+    await retiredLaptop.save();
+
     res.status(200).json({
+      success: true,
       message: "Laptop retired successfully",
       laptop: retiredLaptop,
     });
@@ -134,7 +177,7 @@ export const retireLaptop = async (req: Request, res: Response) => {
         .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
     console.error(error);
-    res.status(500).json({ success: false, message: "Error retiring Laptop" });
+    res.status(500).json({ success: false, message: "Error retiring laptop" });
   }
 };
 
@@ -161,3 +204,5 @@ export const deleteLaptopDetails = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Error deleting Laptop" });
   }
 };
+
+// Assignment Operations for Laptop Details
