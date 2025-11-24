@@ -1,18 +1,8 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
+import { IUser } from "../types/types";
 
 // TypeScript interface for User
-export interface IUser extends Document {
-  name: string;
-  email: string;
-  password: string;
-  otp?: string;
-  otpExpiry?: Date;
-  isVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  resetPasswordToken?: string;
-  resetPasswordExpiry?: Date;
-}
+
 
 // User Mongoose schema
 const userSchema = new Schema<IUser>(

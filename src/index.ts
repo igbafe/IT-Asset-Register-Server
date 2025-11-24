@@ -3,8 +3,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import cors from "cors";
 import userRouter from "./Inventory-auth/authRoute.js";
-import assignmentRouter from "./inventory-laptopAssignments/laptopAssignmentRoute.js";
-import laptopDetailsRouter from "./inventory-laptopDetails/laptopDetailsRoute.js";
+import laptopRouter from "./inventory-laptops/laptopsRoute.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -16,13 +15,13 @@ app.use(
   cors({
     origin: [
       "https://it-asset-register-client.onrender.com", // your local frontend URL
+      "http://localhost:5173",
     ],
   })
 );
 
 app.use("/api/user", userRouter);
-app.use("/api/laptopDetails", laptopDetailsRouter);
-app.use("/api/laptopAssignment", assignmentRouter);
+app.use("/api/laptops", laptopRouter);
 
 app.listen(PORT, () => {
   connectDB();
