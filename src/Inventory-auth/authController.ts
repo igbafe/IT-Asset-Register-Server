@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { User } from "./authModel.js";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions, Secret } from "jsonwebtoken";
 import crypto from "crypto";
 import { z, ZodError } from "zod";
 import type { Request, Response } from "express";
@@ -17,9 +17,28 @@ const transporter = nodemailer.createTransport({
 });
 
 const createToken = (_id: string) => {
-  return jwt.sign({ _id }, process.env.JWT_SECRET as string, {
-    expiresIn: "1h",
-  });
+  const secretEnv = process.env.JWT_SECRET;
+  if (!secretEnv) throw new Error("JWT_SECRET is not set in environment");
+  const secret: Secret = secretEnv;
+
+  const expiresIn = (process.env.JWT_EXPIRES_IN ?? "7d") as SignOptions["expiresIn"];
+  
+  console.log("🔑 Creating token with expiry:", expiresIn);
+
+  const options: SignOptions = {
+    expiresIn,
+  };
+
+  const token = jwt.sign({ _id }, secret, options);
+  
+  // Decode to verify expiry was set
+  const decoded = jwt.decode(token) as any;
+  console.log("📅 Token created:");
+  console.log("   - Issued at (iat):", new Date(decoded.iat * 1000).toISOString());
+  console.log("   - Expires at (exp):", new Date(decoded.exp * 1000).toISOString());
+  console.log("   - Time until expiry:", Math.floor((decoded.exp - decoded.iat) / 60), "minutes");
+
+  return token;
 };
 
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
