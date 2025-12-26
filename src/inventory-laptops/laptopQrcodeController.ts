@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import type { QRCodeToDataURLOptions } from "qrcode";
 
 const getFrontendUrl = () =>
-  process.env.FRONTEND_URL || "http://localhost:5173";
+  process.env.FRONTEND_URL || "https://it-asset-register-client.onrender.com";
 
 const qrOptions: QRCodeToDataURLOptions = {
   errorCorrectionLevel: "H",
