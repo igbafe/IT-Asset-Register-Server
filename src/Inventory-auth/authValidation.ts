@@ -19,10 +19,10 @@ const userSchemaZod = z.object({
     ),
 });
 
-const otpSchema = z.object({
-  email: z.email(),
-  otp: z.string().length(6),
-});
+// const otpSchema = z.object({
+//   email: z.email(),
+//   otp: z.string().length(6),
+// });
 
 const loginSchema = z.object({
   email: z.email(),
@@ -30,4 +30,4 @@ const loginSchema = z.object({
 });
 
 
-export {  userSchemaZod, otpSchema, loginSchema };
+export {  userSchemaZod, loginSchema };

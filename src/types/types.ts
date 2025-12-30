@@ -4,9 +4,6 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  otp?: string;
-  otpExpiry?: Date;
-  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
   resetPasswordToken?: string;

@@ -36,6 +36,7 @@ export const generateLaptopQRCode = async (req: Request, res: Response) => {
         scanUrl,              
         qrCode: qrCodeDataURL 
       },
+      message: "QR code generated successfully",
     });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -102,6 +103,7 @@ export const generateLaptopQRCodeForAll = async (
       success: true,
       count: qrCodes.length,
       data: qrCodes,
+      message: "QR codes generated successfully for all laptops",
     });
   } catch (error) {
     console.error(error);
