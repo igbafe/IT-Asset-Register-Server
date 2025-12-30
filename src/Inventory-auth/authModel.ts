@@ -22,16 +22,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
     },
-    otp: {
-      type: String,
-    },
-    otpExpiry: {
-      type: Date,
-    },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
     resetPasswordToken: {
       type: String,
     },
