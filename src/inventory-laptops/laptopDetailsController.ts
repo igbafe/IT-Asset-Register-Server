@@ -11,11 +11,12 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
 
     const existingLaptop = await laptopDetailsModel.findOne({
       serialNumber: laptopDetails.serialNumber,
+      systemName: laptopDetails.systemName,
     });
     if (existingLaptop) {
       return res.status(400).json({
         success: false,
-        message: "Laptop with this serial number already exists",
+        message: "Laptop with the same serial number and system name already exists",
       });
     }
     const newLaptopDetails = new laptopDetailsModel(laptopDetails);

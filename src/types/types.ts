@@ -3,11 +3,17 @@ import { Document } from "mongoose";
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
+  password?: string; // Make optional for OAuth users
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
+  
+  // NEW: OAuth fields
+  googleId?: string;
+  picture?: string;
+  authProvider: 'local' | 'google' | 'both';
+  
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ILaptopDetails {

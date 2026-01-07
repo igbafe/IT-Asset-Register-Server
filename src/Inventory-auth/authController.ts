@@ -2,11 +2,33 @@ import nodemailer from "nodemailer";
 import { User } from "./authModel.js";
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
 import crypto from "crypto";
-import {  ZodError } from "zod";
+import { ZodError } from "zod";
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { loginSchema, userSchemaZod } from "./authValidation.js";
 import mongoose from "mongoose";
+import axios from "axios";
+
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
+
+// Interface for Google user data
+interface GoogleUserData {
+  id: string;
+  email: string;
+  name: string;
+  picture: string;
+  verified_email: boolean;
+}
+
+interface GoogleTokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token?: string;
+  scope: string;
+  token_type: string;
+}
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -14,7 +36,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  
 });
 
 console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
@@ -36,6 +57,190 @@ const createToken = (_id: string) => {
   const token = jwt.sign({ _id }, secret, options);
 
   return token;
+};
+
+// ADD: Initiate Google OAuth
+export const initiateGoogleAuth = (req: Request, res: Response) => {
+  try {
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID || "",
+      redirect_uri: `${process.env.SERVER_URL}/api/user/auth/google/callback`,
+      response_type: "code",
+      scope: "profile email",
+      access_type: "offline",
+      prompt: "consent",
+    });
+
+    res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
+  } catch (error) {
+    console.error("Error initiating Google auth:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error initiating Google authentication",
+    });
+  }
+};
+
+// ADD: Google OAuth callback
+export const googleAuthCallback = async (req: Request, res: Response) => {
+  const { code } = req.query;
+
+  if (!code || typeof code !== "string") {
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=no_code`);
+  }
+
+  try {
+    // Exchange authorization code for access token
+    const tokenResponse = await axios.post<GoogleTokenResponse>(
+      GOOGLE_TOKEN_URL,
+      {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${process.env.SERVER_URL}/api/user/auth/google/callback`,
+        grant_type: "authorization_code",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { access_token } = tokenResponse.data;
+
+    // Get user info from Google
+    const userResponse = await axios.get<GoogleUserData>(GOOGLE_USERINFO_URL, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    const { id, email, name, picture } = userResponse.data;
+
+    // Find user by email or googleId
+    let user = await User.findOne({
+      $or: [{ email }, { googleId: id }],
+    });
+
+    if (user) {
+      // Existing user - link Google account if not already linked
+      if (!user.googleId) {
+        user.googleId = id;
+        user.picture = picture;
+        user.authProvider = user.password ? "both" : "google";
+        await user.save();
+      }
+    } else {
+      // Create new user with OAuth (no password needed)
+      user = await User.create({
+        email,
+        googleId: id,
+        name,
+        picture,
+        authProvider: "google",
+        // password field is optional for OAuth users
+      });
+    }
+
+    // Create JWT token using your existing createToken function
+    const token = createToken((user._id as mongoose.Types.ObjectId).toString());
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
+  } catch (error: any) {
+    console.error("OAuth callback error:", error.response?.data || error);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
+  }
+};
+
+// ADD: Get current user (works with both local and OAuth users)
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    // Assuming you have auth middleware that sets req.user
+    const userId = (req as any).user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+      });
+    }
+
+    const user = await User.findById(userId).select(
+      "-password -resetPasswordToken -resetPasswordExpiry"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+        authProvider: user.authProvider,
+      },
+    });
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving user",
+    });
+  }
+};
+
+// ADD: Unlink Google account (optional feature)
+export const unlinkGoogleAccount = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Can only unlink if user has a password (local auth)
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot unlink Google account. Please set a password first.",
+      });
+    }
+
+    user.googleId = undefined;
+    user.authProvider = "local";
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Google account unlinked successfully",
+    });
+  } catch (error) {
+    console.error("Error unlinking Google account:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error unlinking Google account",
+    });
+  }
 };
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -85,6 +290,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res
         .status(400)
         .json({ success: false, message: "User not found" });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please sign in or register using Google",
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

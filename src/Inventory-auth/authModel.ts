@@ -1,10 +1,7 @@
+
 import mongoose, { Document, Model, Schema } from "mongoose";
 import { IUser } from "../types/types";
 
-// TypeScript interface for User
-
-
-// User Mongoose schema
 const userSchema = new Schema<IUser>(
   {
     name: {
@@ -20,7 +17,10 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
+      // Password only required for local auth users
+      required: function(this: IUser) {
+        return this.authProvider === 'local' || this.authProvider === 'both';
+      },
     },
     resetPasswordToken: {
       type: String,
@@ -28,11 +28,28 @@ const userSchema = new Schema<IUser>(
     resetPasswordExpiry: {
       type: Date,
     },
+    
+    // NEW: OAuth fields
+    googleId: {
+      type: String,
+      sparse: true, // Allows null but unique when present
+      unique: true,
+    },
+    picture: {
+      type: String,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google', 'both'],
+      default: 'local',
+    },
   },
   { timestamps: true }
 );
 
-// model
+// Create compound index to prevent duplicate OAuth accounts
+userSchema.index({ googleId: 1 }, { sparse: true });
+
 const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 
