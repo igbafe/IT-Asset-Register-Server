@@ -4,7 +4,8 @@ import { LaptopStatus } from "../types/types.js";
 export const laptopDetailsSchema = z.object({
   currentUser: z
     .object({
-      fullName: z.string().min(1, { message: "Full name is required" }),
+      firstName: z.string().min(1, { message: "First name is required" }),
+      lastName: z.string().min(1, { message: "Last name is required" }),
       email: z.email({ message: "Invalid email address" }),
       department: z.string().min(1, { message: "Department is required" }),
       assignedDate: z.coerce.date().refine((d) => d.getTime() <= Date.now(), {
@@ -16,7 +17,8 @@ export const laptopDetailsSchema = z.object({
   previousUser: z
     .array(
       z.object({
-        fullName: z.string().min(1, { message: "Full name is required" }),
+        firstName: z.string().min(1, { message: "First name is required" }),
+        lastName: z.string().min(1, { message: "Last name is required" }),
         email: z.email({ message: "Invalid email address" }),
         department: z.string().min(1, { message: "Department is required" }),
         assignedDate: z.coerce.date().refine((d) => d.getTime() <= Date.now(), {
@@ -46,14 +48,16 @@ export const laptopDetailsSchema = z.object({
 export type LaptopDetailsInput = z.infer<typeof laptopDetailsSchema>;
 
 export const assignLaptopSchema = z.object({
-  fullName: z.string().min(1, { message: "Full name is required" }),
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
   email: z.email({ message: "Invalid email address" }),
   department: z.string().min(1, { message: "Department is required" }),
 });
 
 // Schema for reassigning a laptop (same as assign)
 export const reassignLaptopSchema = z.object({
-  fullName: z.string().min(1, { message: "Full name is required" }),
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
   email: z.email({ message: "Invalid email address" }),
   department: z.string().min(1, { message: "Department is required" }),
 });
@@ -61,9 +65,13 @@ export const reassignLaptopSchema = z.object({
 // Schema for updating current user details
 export const updateCurrentUserSchema = z
   .object({
-    fullName: z
+    firstName: z
       .string()
-      .min(1, { message: "Full name is required" })
+      .min(1, { message: "First name is required" })
+      .or(z.literal("")),
+    lastName: z
+      .string()
+      .min(1, { message: "Last name is required" })
       .or(z.literal("")),
     email: z.email({ message: "Invalid email address" }).or(z.literal("")),
     department: z

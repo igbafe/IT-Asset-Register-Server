@@ -23,7 +23,7 @@ export const assignLaptop = async (req: Request, res: Response) => {
       });
     }
 
-    const { fullName, email, department } = validation.data;
+    const { firstName, lastName, email, department } = validation.data;
 
     const laptop = await laptopDetailsModel.findById(id);
 
@@ -55,7 +55,8 @@ export const assignLaptop = async (req: Request, res: Response) => {
 
     // Assign laptop
     laptop.currentUser = {
-      fullName,
+      firstName,
+      lastName,
       email,
       department,
       assignedDate: new Date(),
@@ -94,7 +95,7 @@ export const reassignLaptop = async (req: Request, res: Response) => {
       });
     }
 
-    const { fullName, email, department } = validation.data;
+    const { firstName, lastName, email, department } = validation.data;
 
     const laptop = await laptopDetailsModel.findById(id);
 
@@ -125,7 +126,8 @@ export const reassignLaptop = async (req: Request, res: Response) => {
     // Move current user to previous users array
     const previousUsers = laptop.previousUser || [];
     previousUsers.push({
-      fullName: laptop.currentUser.fullName,
+      firstName: laptop.currentUser.firstName,
+      lastName: laptop.currentUser.lastName,
       email: laptop.currentUser.email,
       department: laptop.currentUser.department,
       assignedDate: laptop.currentUser.assignedDate,
@@ -134,7 +136,8 @@ export const reassignLaptop = async (req: Request, res: Response) => {
 
     // Assign to new user
     laptop.currentUser = {
-      fullName,
+      firstName,
+      lastName,
       email,
       department,
       assignedDate: new Date(),
@@ -193,7 +196,8 @@ export const updateCurrentUser = async (req: Request, res: Response) => {
 
     // Build dot notation updates for nested fields
     const mergedCurrentUser = {
-      fullName: updates.fullName ?? laptop.currentUser.fullName,
+      firstName: updates.firstName ?? laptop.currentUser.firstName,
+      lastName: updates.lastName ?? laptop.currentUser.lastName,
       email: updates.email ?? laptop.currentUser.email,
       department: updates.department ?? laptop.currentUser.department,
       assignedDate: laptop.currentUser.assignedDate,
@@ -262,7 +266,8 @@ export const returnCurrentUser = async (req: Request, res: Response) => {
     }
 
     const mapCurrentToPrevious = (user: typeof laptop.currentUser) => ({
-      fullName: user.fullName,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       department: user.department,
       assignedDate: user.assignedDate,

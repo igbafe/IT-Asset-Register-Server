@@ -3,7 +3,8 @@ import { ILaptopDetails, LaptopStatus, LaptopUser } from "../types/types.js";
 
 const LaptopUserSchema: Schema<LaptopUser> = new Schema(
   {
-    fullName: { type: String, required: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
     email: { type: String, required: true },
     department: { type: String, required: true },
     assignedDate: { type: Date, required: true },
@@ -11,6 +12,10 @@ const LaptopUserSchema: Schema<LaptopUser> = new Schema(
   },
   { _id: false }
 );
+
+LaptopUserSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 const LaptopDetailsSchema: Schema = new Schema<ILaptopDetails>(
   {
@@ -32,7 +37,7 @@ const LaptopDetailsSchema: Schema = new Schema<ILaptopDetails>(
     status: {
       type: String,
       enum: Object.values(LaptopStatus),
-        default: null,
+      default: null,
     },
     retirementDate: { type: Date },
     retirementNote: { type: String },
