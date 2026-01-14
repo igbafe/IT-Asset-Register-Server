@@ -3,11 +3,14 @@ import { IUser } from "../types/types";
 
 // TypeScript interface for User
 
-
 // User Mongoose schema
 const userSchema = new Schema<IUser>(
   {
-    name: {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
       type: String,
       required: true,
     },

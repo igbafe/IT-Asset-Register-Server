@@ -1,7 +1,8 @@
 import { Document } from "mongoose";
 
 export interface IUser extends Document {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   createdAt: Date;
@@ -33,7 +34,8 @@ export enum LaptopStatus {
 }
 
 export interface LaptopUser {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   department: string;
   assignedDate: Date;

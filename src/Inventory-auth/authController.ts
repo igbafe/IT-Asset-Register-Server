@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import { User } from "./authModel.js";
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
 import crypto from "crypto";
-import {  ZodError } from "zod";
+import { ZodError } from "zod";
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { loginSchema, userSchemaZod } from "./authValidation.js";
@@ -14,7 +14,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  
 });
 
 console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
@@ -40,7 +39,9 @@ const createToken = (_id: string) => {
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = userSchemaZod.parse(req.body);
+    const { firstName, lastName, email, password } = userSchemaZod.parse(
+      req.body
+    );
     const exists = await User.findOne({ email });
     if (exists) {
       return res
@@ -51,7 +52,8 @@ export const registerUser = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
     });
@@ -104,7 +106,8 @@ export const loginUser = async (req: Request, res: Response) => {
       message: "Login successful",
       user: {
         _id: user._id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       },
     });

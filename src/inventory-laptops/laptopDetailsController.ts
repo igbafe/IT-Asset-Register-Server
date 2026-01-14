@@ -9,15 +9,30 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
   try {
     const laptopDetails = laptopDetailsSchema.parse(req.body);
 
-    const existingLaptop = await laptopDetailsModel.findOne({
+    // Check serial number
+    const serialExists = await laptopDetailsModel.findOne({
       serialNumber: laptopDetails.serialNumber,
     });
-    if (existingLaptop) {
+
+    if (serialExists) {
       return res.status(400).json({
         success: false,
         message: "Laptop with this serial number already exists",
       });
     }
+
+    // Check system name
+    const systemNameExists = await laptopDetailsModel.findOne({
+      systemName: laptopDetails.systemName,
+    });
+
+    if (systemNameExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Laptop with this system name already exists",
+      });
+    }
+
     const newLaptopDetails = new laptopDetailsModel(laptopDetails);
     newLaptopDetails.status = LaptopStatus.AVAILABLE;
     await newLaptopDetails.save();
@@ -142,7 +157,8 @@ export const retireLaptop = async (req: Request, res: Response) => {
       const mapCurrentToPrevious = (
         user: typeof retiredLaptop.currentUser
       ) => ({
-        fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         department: user.department,
         assignedDate: user.assignedDate,
