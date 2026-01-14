@@ -8,12 +8,11 @@ import { LaptopStatus } from "../types/types.js";
 import laptopDetailsModel from "./laptopsModel.js";
 import { ZodError } from "zod";
 
-// Assign laptop to a user (initial assignment)
 export const assignLaptop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Validate input
+    
     const validation = assignLaptopSchema.safeParse(req.body);
     if (!validation.success) {
       return res.status(400).json({
