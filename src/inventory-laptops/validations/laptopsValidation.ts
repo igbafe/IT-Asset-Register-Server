@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LaptopStatus } from "../types/types.js";
+import { LaptopStatus } from "../../types/types.js";
 
 export const laptopDetailsSchema = z.object({
   currentUser: z

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ILaptopDetails, LaptopStatus, LaptopUser } from "../types/types.js";
+import { ILaptopDetails, LaptopStatus, LaptopUser } from "../../types/types.js";
 
 const LaptopUserSchema: Schema<LaptopUser> = new Schema(
   {
@@ -24,7 +24,7 @@ const LaptopDetailsSchema: Schema = new Schema<ILaptopDetails>(
       default: null,
     },
     previousUser: {
-      type: [LaptopUserSchema], // ✅ make it an array to match type
+      type: [LaptopUserSchema], 
       default: [],
     },
     systemName: { type: String, required: true },

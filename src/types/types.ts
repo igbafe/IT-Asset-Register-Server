@@ -41,3 +41,10 @@ export interface LaptopUser {
   assignedDate: Date;
   returnedDate?: Date;
 }
+
+export interface IBrandModel {
+  brandName: string;
+  models: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}

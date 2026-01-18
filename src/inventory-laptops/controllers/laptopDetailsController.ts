@@ -1,13 +1,35 @@
 import type { Request, Response } from "express";
-import laptopDetailsModel from "./laptopsModel.js";
-import { laptopDetailsSchema } from "./laptopsValidation.js";
-import { success, ZodError } from "zod";
-import { LaptopStatus } from "../types/types.js";
+import laptopDetailsModel from "../models/laptopsModel.js";
+import { ZodError } from "zod";
+import { LaptopStatus } from "../../types/types.js";
+import { laptopDetailsSchema } from "../validations/laptopsValidation.js";
+import BrandModelModel from "../models/laptopBrandModel.js";
 
-// CRUD Operations for Laptop Details
+
 export const addLaptopDetails = async (req: Request, res: Response) => {
   try {
     const laptopDetails = laptopDetailsSchema.parse(req.body);
+
+    // Validate brand exists
+    const brandExists = await BrandModelModel.findOne({
+      brandName: laptopDetails.brand,
+    });
+
+    if (!brandExists) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Brand does not exist. Please add the brand first in settings.",
+      });
+    }
+
+    // Validate model belongs to brand
+    if (!brandExists.models.includes(laptopDetails.model)) {
+      return res.status(400).json({
+        success: false,
+        message: `Model '${laptopDetails.model}' does not exist for brand '${laptopDetails.brand}'.`,
+      });
+    }
 
     // Check serial number
     const serialExists = await laptopDetailsModel.findOne({
@@ -21,7 +43,7 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
       });
     }
 
-    // Check system name
+    
     const systemNameExists = await laptopDetailsModel.findOne({
       systemName: laptopDetails.systemName,
     });
@@ -36,7 +58,9 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
     const newLaptopDetails = new laptopDetailsModel(laptopDetails);
     newLaptopDetails.status = LaptopStatus.AVAILABLE;
     await newLaptopDetails.save();
+
     res.status(201).json({
+      success: true,
       message: "Laptop details added successfully",
       laptop: newLaptopDetails,
     });
@@ -86,6 +110,39 @@ export const updateLaptopDetails = async (req: Request, res: Response) => {
     const { serialNumber } = req.params;
     const updates = laptopDetailsSchema.partial().parse(req.body);
 
+    // If brand or model is being updated, validate
+    if (updates.brand || updates.model) {
+      const laptop = await laptopDetailsModel.findOne({ serialNumber });
+      
+      if (!laptop) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Laptop not found" 
+        });
+      }
+
+      const brandToCheck = updates.brand || laptop.brand;
+      const modelToCheck = updates.model || laptop.model;
+
+      const brandExists = await BrandModelModel.findOne({ 
+        brandName: brandToCheck 
+      });
+
+      if (!brandExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Brand does not exist."
+        });
+      }
+
+      if (!brandExists.models.includes(modelToCheck)) {
+        return res.status(400).json({
+          success: false,
+          message: `Model '${modelToCheck}' does not exist for brand '${brandToCheck}'.`
+        });
+      }
+    }
+
     const updatedLaptop = await laptopDetailsModel.findOneAndUpdate(
       { serialNumber },
       updates,
@@ -93,9 +150,14 @@ export const updateLaptopDetails = async (req: Request, res: Response) => {
     );
 
     if (!updatedLaptop) {
-      return res.status(404).json({ message: "Laptop not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Laptop not found" 
+      });
     }
+
     res.status(200).json({
+      success: true,
       message: "Laptop updated successfully",
       laptop: updatedLaptop,
     });

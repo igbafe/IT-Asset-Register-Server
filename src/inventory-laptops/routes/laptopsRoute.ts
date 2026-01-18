@@ -6,20 +6,28 @@ import {
   getLaptopDetailsBySerialNumber,
   retireLaptop,
   updateLaptopDetails,
-} from "./laptopDetailsController.js";
+} from "../controllers/laptopDetailsController.js";
 import {
   assignLaptop,
   getAllUsers,
   reassignLaptop,
   returnCurrentUser,
   updateCurrentUser,
-} from "./laptopAssignmentController.js";
+} from "../controllers/laptopAssignmentController.js";
 import {
   downloadLaptopQRCode,
   generateLaptopQRCode,
   generateLaptopQRCodeForAll,
-} from "./laptopQrcodeController.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+} from "../controllers/laptopQrcodeController.js";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
+import {
+  addModelToBrand,
+  createBrand,
+  deleteBrand,
+  getAllBrands,
+  getModelsByBrand,
+  removeModelFromBrand,
+} from "../controllers/laptopBrandController.js";
 
 const laptopRouter = express.Router();
 
@@ -44,11 +52,23 @@ laptopRouter.get("/:id/users", authMiddleware, getAllUsers);
 
 // QR Code routes
 laptopRouter.get("/:serialNumber/qr", authMiddleware, generateLaptopQRCode);
-laptopRouter.get("/qr/all",  generateLaptopQRCodeForAll);
+laptopRouter.get("/qr/all", generateLaptopQRCodeForAll);
 laptopRouter.get(
   "/:serialNumber/qr/download",
   authMiddleware,
   downloadLaptopQRCode
 );
 
+// Brand and Model routes
+laptopRouter.post("/brands", authMiddleware, createBrand);
+laptopRouter.get("/all/brands", authMiddleware, getAllBrands);
+laptopRouter.get("/brands/:brandName/models", authMiddleware, getModelsByBrand);
+laptopRouter.post("/brands/:brandName/models", authMiddleware, addModelToBrand);
+laptopRouter.delete(
+  "/brands/:brandName/models/:model",
+  authMiddleware,
+  removeModelFromBrand
+);
+laptopRouter.delete("/brands/:brandName", authMiddleware, deleteBrand);
+// laptopRouter.patch("/brands/:brandName", authMiddleware, updateBrandName);
 export default laptopRouter;

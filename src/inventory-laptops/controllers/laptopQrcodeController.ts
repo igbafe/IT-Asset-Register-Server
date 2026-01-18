@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import laptopDetailsModel from "./laptopsModel.js";
 import QRCode from "qrcode";
 import { ZodError } from "zod";
 import type { QRCodeToDataURLOptions } from "qrcode";
+import laptopDetailsModel from "../models/laptopsModel.js";
 
 const getFrontendUrl = () =>
   process.env.FRONTEND_URL || "https://it-asset-register-client.onrender.com";

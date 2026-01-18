@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import cors from "cors";
 import userRouter from "./Inventory-auth/authRoute.js";
-import laptopRouter from "./inventory-laptops/laptopsRoute.js";
+import laptopRouter from "./inventory-laptops/routes/laptopsRoute.js";
 
 dotenv.config({ path: "./.env" });
 
