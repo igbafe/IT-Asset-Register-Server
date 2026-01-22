@@ -24,7 +24,7 @@ const createToken = (_id: string) => {
   const secret: Secret = secretEnv;
 
   const expiresIn = (process.env.JWT_EXPIRES_IN ??
-    "7d") as SignOptions["expiresIn"];
+    "15m") as SignOptions["expiresIn"];
 
   console.log(" Creating token with expiry:", expiresIn);
 
