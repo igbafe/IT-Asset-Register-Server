@@ -1,18 +1,18 @@
 import { Request, Response } from "express";
+
+import { ZodError } from "zod";
 import {
   assignLaptopSchema,
   reassignLaptopSchema,
   updateCurrentUserSchema,
-} from "./laptopsValidation.js";
-import { LaptopStatus } from "../types/types.js";
-import laptopDetailsModel from "./laptopsModel.js";
-import { ZodError } from "zod";
+} from "../validations/laptopsValidation.js";
+import { LaptopStatus } from "../../types/types.js";
+import laptopDetailsModel from "../models/laptopsModel.js";
 
 export const assignLaptop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    
     const validation = assignLaptopSchema.safeParse(req.body);
     if (!validation.success) {
       return res.status(400).json({
