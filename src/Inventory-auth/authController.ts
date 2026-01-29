@@ -69,19 +69,18 @@ export const loginUser = async (req: Request, res: Response) => {
         email: user.email,
       },
     });
-  } catch (error: any) {
-    if (error instanceof ZodError) {
-      return res
-        .status(400)
-        .json({ success: false, errors: error.issues.map((e) => e.message) });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Error logging in",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
-    });
-  }
+  } catch (error) {
+     if (error instanceof ZodError) {
+       return res
+         .status(400)
+         .json({ success: false, errors: error.issues.map((e) => e.message) });
+     }
+     console.error(error);
+     res.status(500).json({
+       success: false,
+       message: "Error logging in",
+     });
+   }
 };
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -130,17 +129,16 @@ export const registerUser = async (req: Request, res: Response) => {
         email: newUser.email,
       },
     });
-  } catch (error: any) {
+   } catch (error) {
     if (error instanceof ZodError) {
       return res
         .status(400)
         .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
-
+    console.error(error);
     res.status(500).json({
       success: false,
       message: "Error registering user",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -220,12 +218,16 @@ export const logoutUser = async (req: Request, res: Response) => {
       success: true,
       message: "Logged out successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
     console.error(error);
     res.status(500).json({
       success: false,
       message: "Error logging out",
-      error: error.message,
     });
   }
 };
@@ -241,10 +243,17 @@ export const getAllUsers = async (req: Request, res: Response) => {
       count: users.length,
       data: users,
     });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: "Error getting users", error: error.message });
+   } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting users",
+    });
   }
 };
 
@@ -277,10 +286,16 @@ export const getProfile = async (req: Request, res: Response) => {
         email: user.email,
       },
     });
-  } catch (error) {
+   } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
+    console.error(error);
     res.status(500).json({
       success: false,
-      message: "Error fetching profile",
+      message: "Error getting profile",
     });
   }
 };
@@ -321,7 +336,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
       success: true,
       message: "Password reset email sent successfully",
     });
-  } catch (error) {
+   } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ success: false, errors: error.issues.map((e) => e.message) });
+    }
     console.error(error);
     res.status(500).json({
       success: false,
