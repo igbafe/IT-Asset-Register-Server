@@ -5,10 +5,19 @@ import { LaptopStatus } from "../../types/types.js";
 import { laptopDetailsSchema } from "../validations/laptopsValidation.js";
 import BrandModelModel from "../models/laptopBrandModel.js";
 
-
 export const addLaptopDetails = async (req: Request, res: Response) => {
   try {
-    const laptopDetails = laptopDetailsSchema.parse(req.body);
+    const rawLaptopDetails = laptopDetailsSchema.parse(req.body);
+
+    const laptopDetails = {
+      ...rawLaptopDetails,
+      brand:
+        rawLaptopDetails.brand.charAt(0).toUpperCase() +
+        rawLaptopDetails.brand.slice(1),
+      model:
+        rawLaptopDetails.model.charAt(0).toUpperCase() +
+        rawLaptopDetails.model.slice(1),
+    };
 
     // Validate brand exists
     const brandExists = await BrandModelModel.findOne({
@@ -43,7 +52,6 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
       });
     }
 
-    
     const systemNameExists = await laptopDetailsModel.findOne({
       systemName: laptopDetails.systemName,
     });
@@ -56,6 +64,15 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
     }
 
     const newLaptopDetails = new laptopDetailsModel(laptopDetails);
+
+    // Calculate End of Life Date (4 years from purchase)
+    if (laptopDetails.purchaseDate) {
+      const purchaseDate = new Date(laptopDetails.purchaseDate);
+      const endOfLifeDate = new Date(purchaseDate);
+      endOfLifeDate.setFullYear(endOfLifeDate.getFullYear() + 4);
+      newLaptopDetails.endOfLifeDate = endOfLifeDate;
+    }
+
     newLaptopDetails.status = LaptopStatus.AVAILABLE;
     await newLaptopDetails.save();
 
@@ -77,7 +94,7 @@ export const addLaptopDetails = async (req: Request, res: Response) => {
 
 export const getLaptopDetailsBySerialNumber = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { serialNumber } = req.params;
@@ -108,37 +125,47 @@ export const getLaptopDetailsBySerialNumber = async (
 export const updateLaptopDetails = async (req: Request, res: Response) => {
   try {
     const { serialNumber } = req.params;
-    const updates = laptopDetailsSchema.partial().parse(req.body);
+    const rawUpdates = laptopDetailsSchema.partial().parse(req.body);
+
+    const updates = { ...rawUpdates };
+    if (updates.brand) {
+      updates.brand =
+        updates.brand.charAt(0).toUpperCase() + updates.brand.slice(1);
+    }
+    if (updates.model) {
+      updates.model =
+        updates.model.charAt(0).toUpperCase() + updates.model.slice(1);
+    }
 
     // If brand or model is being updated, validate
     if (updates.brand || updates.model) {
       const laptop = await laptopDetailsModel.findOne({ serialNumber });
-      
+
       if (!laptop) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "Laptop not found" 
+          message: "Laptop not found",
         });
       }
 
       const brandToCheck = updates.brand || laptop.brand;
       const modelToCheck = updates.model || laptop.model;
 
-      const brandExists = await BrandModelModel.findOne({ 
-        brandName: brandToCheck 
+      const brandExists = await BrandModelModel.findOne({
+        brandName: brandToCheck,
       });
 
       if (!brandExists) {
         return res.status(400).json({
           success: false,
-          message: "Brand does not exist."
+          message: "Brand does not exist.",
         });
       }
 
       if (!brandExists.models.includes(modelToCheck)) {
         return res.status(400).json({
           success: false,
-          message: `Model '${modelToCheck}' does not exist for brand '${brandToCheck}'.`
+          message: `Model '${modelToCheck}' does not exist for brand '${brandToCheck}'.`,
         });
       }
     }
@@ -146,13 +173,13 @@ export const updateLaptopDetails = async (req: Request, res: Response) => {
     const updatedLaptop = await laptopDetailsModel.findOneAndUpdate(
       { serialNumber },
       updates,
-      { new: true }
+      { new: true },
     );
 
     if (!updatedLaptop) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Laptop not found" 
+        message: "Laptop not found",
       });
     }
 
@@ -196,28 +223,28 @@ export const getAllLaptopDetails = async (req: Request, res: Response) => {
   }
 };
 
-export const retireLaptop = async (req: Request, res: Response) => {
+export const decommissionLaptop = async (req: Request, res: Response) => {
   try {
     const { serialNumber } = req.params;
-    const { retirementNote } = req.body;
+    const { decommissionNote } = req.body;
 
-    const retiredLaptop = await laptopDetailsModel.findOne({ serialNumber });
+    const decommissionedLaptop = await laptopDetailsModel.findOne({ serialNumber });
 
-    if (!retiredLaptop) {
+    if (!decommissionedLaptop) {
       return res.status(404).json({ message: "Laptop not found" });
     }
 
-    if (retiredLaptop.status === LaptopStatus.RETIRED) {
+    if (decommissionedLaptop.status === LaptopStatus.DECOMMISSIONED) {
       return res.status(400).json({
         success: false,
-        message: "Laptop is already retired",
+        message: "Laptop is already decommissioned",
       });
     }
 
     // Move currentUser to previousUser if assigned
-    if (retiredLaptop.currentUser) {
+    if (decommissionedLaptop.currentUser) {
       const mapCurrentToPrevious = (
-        user: typeof retiredLaptop.currentUser
+        user: typeof decommissionedLaptop.currentUser,
       ) => ({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -227,26 +254,26 @@ export const retireLaptop = async (req: Request, res: Response) => {
         returnedDate: new Date(),
       });
 
-      const previousUsers = retiredLaptop.previousUser || [];
-      previousUsers.push(mapCurrentToPrevious(retiredLaptop.currentUser));
+      const previousUsers = decommissionedLaptop.previousUser || [];
+      previousUsers.push(mapCurrentToPrevious(decommissionedLaptop.currentUser));
 
-      retiredLaptop.previousUser = previousUsers;
-      retiredLaptop.currentUser = null;
+      decommissionedLaptop.previousUser = previousUsers;
+      decommissionedLaptop.currentUser = null;
     }
 
-    retiredLaptop.status = LaptopStatus.RETIRED;
-    retiredLaptop.retirementDate = new Date();
+    decommissionedLaptop.status = LaptopStatus.DECOMMISSIONED;
+    decommissionedLaptop.decommissionDate = new Date();
 
-    if (retirementNote) {
-      retiredLaptop.retirementNote = retirementNote;
+    if (decommissionNote) {
+      decommissionedLaptop.decommissionNote = decommissionNote;
     }
 
-    await retiredLaptop.save();
+    await decommissionedLaptop.save();
 
     res.status(200).json({
       success: true,
-      message: "Laptop retired successfully",
-      laptop: retiredLaptop,
+      message: "Laptop decommissioned successfully",
+      laptop: decommissionedLaptop,
     });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -255,7 +282,9 @@ export const retireLaptop = async (req: Request, res: Response) => {
         .json({ success: false, errors: error.issues.map((e) => e.message) });
     }
     console.error(error);
-    res.status(500).json({ success: false, message: "Error retiring laptop" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error decommissioning laptop" });
   }
 };
 

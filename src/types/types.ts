@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   createdAt: Date;
   updatedAt: Date;
+  refreshTokens: string[];
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
 }
@@ -22,15 +23,17 @@ export interface ILaptopDetails {
   rom: string;
   os: string;
   status: LaptopStatus;
-  retirementDate?: Date;
-  retirementNote?: string;
+  purchaseDate: Date;
+  endOfLifeDate?: Date;
+  decommissionDate?: Date;
+  decommissionNote?: string;
 }
 
 export enum LaptopStatus {
   AVAILABLE = "available", // Just added, not assigned yet
   ASSIGNED = "assigned", // Currently assigned to someone
   RETURNED = "returned", // Assignment is over, back in inventory
-  RETIRED = "retired", // End of life, out of service
+  DECOMMISSIONED = "decommissioned", // End of life, out of service
 }
 
 export interface LaptopUser {

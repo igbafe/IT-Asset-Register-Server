@@ -39,8 +39,10 @@ const LaptopDetailsSchema: Schema = new Schema<ILaptopDetails>(
       enum: Object.values(LaptopStatus),
       default: null,
     },
-    retirementDate: { type: Date },
-    retirementNote: { type: String },
+    decommissionDate: { type: Date },
+    decommissionNote: { type: String },
+    purchaseDate: { type: Date },
+    endOfLifeDate: { type: Date },
   },
   { timestamps: true }
 );
