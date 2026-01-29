@@ -1,41 +1,35 @@
 // middleware/authMiddleware.ts
-import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
+import { verifyAccessToken } from "../utils/jwt.js";
 
 export const authMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const authHeader = req.headers.authorization;
+    const token = req.cookies.accessToken;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    const token = authHeader.split(" ")[1];
-    const secret = process.env.JWT_SECRET;
+    const decoded = verifyAccessToken(token);
 
-    if (!secret) {
-      throw new Error("JWT_SECRET not set");
-    }
-
-    // This will throw an error if token is expired
-    const decoded = jwt.verify(token, secret) as { _id: string };
-    (req as any).userId = decoded._id;
+    (req as any).userId = decoded.userId;
 
     next();
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      console.log(" Token expired!");
-      return res.status(401).json({ message: "Token expired" });
+  } catch (error: any) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        message: "Token expired",
+        code: "TOKEN_EXPIRED",
+      });
     }
-    if (error instanceof jwt.JsonWebTokenError) {
-      console.log(" Invalid token");
+    if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid token" });
     }
-    console.error("Auth error:", error);
+
     return res.status(401).json({ message: "Authentication failed" });
   }
 };

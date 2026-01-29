@@ -30,7 +30,7 @@ export const laptopDetailsSchema = z.object({
             message: "Returned date cannot be in the future",
           })
           .optional(),
-      })
+      }),
     )
     .optional(),
   systemName: z.string().min(1, { message: "System name is required" }),
@@ -41,8 +41,10 @@ export const laptopDetailsSchema = z.object({
   rom: z.string().min(1, { message: "ROM is required" }),
   os: z.string().min(1, { message: "Operating system is required" }),
   status: z.enum(LaptopStatus).optional(),
-  retirementDate: z.coerce.date().optional(),
-  retirementNote: z.string().optional(),
+  decommissionDate: z.coerce.date().optional(),
+  decommissionNote: z.string().optional(),
+  purchaseDate: z.coerce.date().optional(),
+  endOfLifeDate: z.coerce.date().optional(),
 });
 
 export type LaptopDetailsInput = z.infer<typeof laptopDetailsSchema>;

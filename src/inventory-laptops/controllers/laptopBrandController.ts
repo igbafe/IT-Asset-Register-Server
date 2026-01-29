@@ -8,7 +8,12 @@ import { ZodError } from "zod";
 
 export const createBrand = async (req: Request, res: Response) => {
   try {
-    const { brandName, models } = brandModelSchema.parse(req.body);
+    const { brandName: rawBrandName, models: rawModels } =
+      brandModelSchema.parse(req.body);
+
+    const brandName =
+      rawBrandName.charAt(0).toUpperCase() + rawBrandName.slice(1);
+    const models = rawModels.map((m) => m.charAt(0).toUpperCase() + m.slice(1));
 
     const existingBrand = await BrandModelModel.findOne({
       brandName: { $regex: new RegExp(`^${brandName}$`, "i") },
@@ -104,7 +109,8 @@ export const getModelsByBrand = async (req: Request, res: Response) => {
 export const addModelToBrand = async (req: Request, res: Response) => {
   try {
     const { brandName } = req.params;
-    const { model } = addModelSchema.parse(req.body);
+    const { model: rawModel } = addModelSchema.parse(req.body);
+    const model = rawModel.charAt(0).toUpperCase() + rawModel.slice(1);
 
     const brand = await BrandModelModel.findOne({ brandName });
 
@@ -204,50 +210,95 @@ export const deleteBrand = async (req: Request, res: Response) => {
   }
 };
 
+// Update an individual model
+export const updateModel = async (req: Request, res: Response) => {
+  try {
+    const { brandName, model } = req.params;
+    let { newModel } = req.body;
+
+    if (newModel) {
+      newModel = newModel.charAt(0).toUpperCase() + newModel.slice(1);
+    }
+
+    const brand = await BrandModelModel.findOne({ brandName });
+
+    if (!brand) {
+      return res.status(404).json({
+        success: false,
+        message: "Brand not found",
+      });
+    }
+
+    const modelIndex = brand.models.indexOf(model);
+    if (modelIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Model not found for this brand",
+      });
+    }
+
+    brand.models[modelIndex] = newModel;
+    await brand.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Model updated successfully",
+      data: brand,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error updating models" });
+  }
+};
+
 // Update brand name
-// export const updateBrandName = async (req: Request, res: Response) => {
-//   try {
-//     const { brandName } = req.params;
-//     const { newBrandName } = req.body;
+export const updateBrandName = async (req: Request, res: Response) => {
+  try {
+    const { brandName } = req.params;
+    const { newBrandName } = req.body;
 
-//     if (!newBrandName || newBrandName.trim() === "") {
-//       return res.status(400).json({
-//         success: false,
-//         message: "New brand name is required",
-//       });
-//     }
+    if (!newBrandName || newBrandName.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "New brand name is required",
+      });
+    }
 
-//     const brand = await BrandModelModel.findOne({ brandName });
+    const brand = await BrandModelModel.findOne({ brandName });
 
-//     if (!brand) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Brand not found",
-//       });
-//     }
+    if (!brand) {
+      return res.status(404).json({
+        success: false,
+        message: "Brand not found",
+      });
+    }
 
-//     // Check if new name already exists
-//     const existingBrand = await BrandModelModel.findOne({
-//       brandName: { $regex: new RegExp(`^${newBrandName}$`, "i") },
-//     });
+    // Check if new name already exists
+    const existingBrand = await BrandModelModel.findOne({
+      brandName: { $regex: new RegExp(`^${newBrandName}$`, "i") },
+    });
 
-//     if (existingBrand && existingBrand.brandName !== brandName) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Brand name already exists",
-//       });
-//     }
+    if (existingBrand && existingBrand.brandName !== brandName) {
+      return res.status(400).json({
+        success: false,
+        message: "Brand name already exists",
+      });
+    }
 
-//     brand.brandName = newBrandName.trim();
-//     await brand.save();
+    const formattedBrandName =
+      newBrandName.trim().charAt(0).toUpperCase() +
+      newBrandName.trim().slice(1);
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Brand name updated successfully",
-//       data: brand,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ success: false, message: "Error updating brand" });
-//   }
-// };
+    brand.brandName = formattedBrandName;
+    await brand.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Brand name updated successfully",
+      data: brand,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error updating brand" });
+  }
+};

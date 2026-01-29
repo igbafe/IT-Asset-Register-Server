@@ -1,10 +1,10 @@
 import express from "express";
 import {
   addLaptopDetails,
+  decommissionLaptop,
   deleteLaptopDetails,
   getAllLaptopDetails,
   getLaptopDetailsBySerialNumber,
-  retireLaptop,
   updateLaptopDetails,
 } from "../controllers/laptopDetailsController.js";
 import {
@@ -27,6 +27,8 @@ import {
   getAllBrands,
   getModelsByBrand,
   removeModelFromBrand,
+  updateBrandName,
+  updateModel,
 } from "../controllers/laptopBrandController.js";
 
 const laptopRouter = express.Router();
@@ -37,11 +39,11 @@ laptopRouter.get("/", authMiddleware, getAllLaptopDetails);
 laptopRouter.get(
   "/:serialNumber",
   authMiddleware,
-  getLaptopDetailsBySerialNumber
+  getLaptopDetailsBySerialNumber,
 );
 laptopRouter.put("/:serialNumber", authMiddleware, updateLaptopDetails);
 laptopRouter.delete("/:serialNumber", authMiddleware, deleteLaptopDetails);
-laptopRouter.put("/retire/:serialNumber", authMiddleware, retireLaptop);
+laptopRouter.put("/retire/:serialNumber", authMiddleware, decommissionLaptop);
 
 //Assignment and user routes
 laptopRouter.post("/:id/assign", authMiddleware, assignLaptop);
@@ -56,7 +58,7 @@ laptopRouter.get("/qr/all", generateLaptopQRCodeForAll);
 laptopRouter.get(
   "/:serialNumber/qr/download",
   authMiddleware,
-  downloadLaptopQRCode
+  downloadLaptopQRCode,
 );
 
 // Brand and Model routes
@@ -64,10 +66,16 @@ laptopRouter.post("/brands", authMiddleware, createBrand);
 laptopRouter.get("/all/brands", authMiddleware, getAllBrands);
 laptopRouter.get("/brands/:brandName/models", authMiddleware, getModelsByBrand);
 laptopRouter.post("/brands/:brandName/models", authMiddleware, addModelToBrand);
+laptopRouter.put(
+  "/brands/:brandName/models/:model",
+  authMiddleware,
+  updateModel,
+);
+laptopRouter.put("/brands/:brandName", authMiddleware, updateBrandName);
 laptopRouter.delete(
   "/brands/:brandName/models/:model",
   authMiddleware,
-  removeModelFromBrand
+  removeModelFromBrand,
 );
 laptopRouter.delete("/brands/:brandName", authMiddleware, deleteBrand);
 // laptopRouter.patch("/brands/:brandName", authMiddleware, updateBrandName);

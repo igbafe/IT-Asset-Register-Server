@@ -1,9 +1,6 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import { IUser } from "../types/types";
 
-// TypeScript interface for User
-
-// User Mongoose schema
 const userSchema = new Schema<IUser>(
   {
     firstName: {
@@ -20,11 +17,17 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
     },
     password: {
       type: String,
       required: true,
+      minlength: [8, "Password must be at least 8 characters"],
+      select: false,
     },
+    refreshTokens: [{
+      type: String,
+    }],
     resetPasswordToken: {
       type: String,
     },
@@ -32,10 +35,9 @@ const userSchema = new Schema<IUser>(
       type: Date,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// model
 const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 

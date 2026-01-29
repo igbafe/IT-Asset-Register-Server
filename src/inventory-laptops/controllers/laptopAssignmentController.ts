@@ -242,7 +242,7 @@ export const returnCurrentUser = async (req: Request, res: Response) => {
 
     if (
       laptop.status === LaptopStatus.RETURNED ||
-      laptop.status === LaptopStatus.RETIRED
+      laptop.status === LaptopStatus.DECOMMISSIONED
     ) {
       return res.status(400).json({
         success: false,

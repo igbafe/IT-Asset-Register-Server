@@ -86,9 +86,13 @@ export const generateLaptopQRCodeForAll = async (
           currentUser: laptop.currentUser,
           previousUser: laptop.previousUser,
 
-          // Retirement Info
-          retirementDate: laptop.retirementDate,
-          retirementNote: laptop.retirementNote,
+          // Purchase Info
+          purchaseDate: laptop.purchaseDate,
+          endOfLifeDate: laptop.endOfLifeDate,
+
+          // Decommission Info
+          decommissionDate: laptop.decommissionDate,
+          decommissionNote: laptop.decommissionNote,
 
           // Timestamps
           createdAt: laptop.createdAt,
